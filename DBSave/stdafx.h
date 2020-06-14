@@ -1,6 +1,7 @@
 #pragma once
 
 #pragma comment(lib, "mysqlclient.lib")
+#pragma comment(lib, "winmm.lib")
 
 #include <Windows.h>
 #include <iostream>

@@ -1,5 +1,6 @@
 
 #include "stdafx.h"
+#include "DBCommunicate.h"
 
 
 
@@ -7,13 +8,17 @@ DBCommunicate::DBCommunicate()
 {
 	_bStopDB = false;
 	_msgQueue = new LockFreeQueue<IQueryMsg*>();
+	_hMsgEnQ = CreateEvent(nullptr, true, false, nullptr);
 
+	//CreateThread();
 
 	if (!DBConnect())
 		exit(-1);
 
+	_hDBThread = (HANDLE)_beginthreadex(nullptr, 0, DBSaveThread, this, 0, nullptr);
+	HANDLE hUpdateThread = (HANDLE)_beginthreadex(nullptr, 0, UpdateThread, this, 0, nullptr);
+	CloseHandle(hUpdateThread);
 
-	CreateThread();
 }
 
 
@@ -33,6 +38,20 @@ void DBCommunicate::DisconnectDB()
 }
 
 
+
+
+void DBCommunicate::Print()
+{
+	printf("=============================================\n");
+	printf("Query TPS : %d\n\n", _queryTPS);
+	printf("=============================================\n");
+
+	_queryTPS = 0;
+}
+
+
+
+
 bool DBCommunicate::DBConnect()
 {
 	MYSQL conn;
@@ -50,20 +69,6 @@ bool DBCommunicate::DBConnect()
 		return false;
 	}
 
-	int queryRes = mysql_query(_dbLink, "SELECT * FROM test_server.account");
-
-	if (queryRes != 0)
-	{
-		if (ConnectError(mysql_errno(_dbLink)))
-		{
-		}
-
-		else
-		{
-			exit(0);
-		}
-
-	}
 
 
 	return true;
@@ -73,34 +78,34 @@ bool DBCommunicate::DBConnect()
 
 UINT __stdcall DBCommunicate::DBSaveThread(LPVOID arg)
 {
-	DBCommunicate* pThis = (DBCommunicate*)arg;
+	//DBCommunicate* pThis = (DBCommunicate*)arg;
 
 
 
-	for (;;)
-	{
-		WaitForSingleObject(pThis->_hMsgEnQ, INFINITE);
+	//for (;;)
+	//{
+	//	WaitForSingleObject(pThis->_hMsgEnQ, INFINITE);
 
 
 
-		while (pThis->_msgQueue->GetQueueSize() > 0)
-		{
+	//	while (pThis->_msgQueue->GetQueueSize() > 0)
+	//	{
 
-			// Message 처리			
-			pThis->SwitchMsg();
-		}
-
-
-
-		// 종료 조건
-		if (pThis->_msgQueue->GetQueueSize() <= 0 && pThis->_bStopDB)
-			break;
-	}
+	//		// Message 처리			
+	//		pThis->SwitchMsg();
+	//	}
 
 
 
-	// DB와 연결종료
-	mysql_close(pThis->_dbLink);
+	//	// 종료 조건
+	//	if (pThis->_msgQueue->GetQueueSize() <= 0 && pThis->_bStopDB)
+	//		break;
+	//}
+
+
+
+	//// DB와 연결종료
+	//mysql_close(pThis->_dbLink);
 
 	return 0;
 }
@@ -109,59 +114,59 @@ UINT __stdcall DBCommunicate::DBSaveThread(LPVOID arg)
 
 UINT __stdcall DBCommunicate::UpdateThread(LPVOID arg)
 {
-	DBCommunicate* pThis = (DBCommunicate*)arg;
-	HANDLE hNeverSignalEvent = CreateEvent(nullptr, true, false, nullptr);
+	//DBCommunicate* pThis = (DBCommunicate*)arg;
+	//HANDLE hNeverSignalEvent = CreateEvent(nullptr, true, false, nullptr);
 
 
 
-	while (!pThis->_bStopDB)
-	{
-		//--------------------------------------------------------
-		// 1. Alloc Data Block 
-		//--------------------------------------------------------
+	//while (!pThis->_bStopDB)
+	//{
+	//	//--------------------------------------------------------
+	//	// 1. Alloc Data Block 
+	//	//--------------------------------------------------------
 
-		void* pData = malloc(sizeof(QMAccountRegist));		
-		ZeroMemory(pData, sizeof(QMAccountRegist));
-
-
-
-		//--------------------------------------------------------
-		// 2. placement new
-		//--------------------------------------------------------
-
-		switch (rand() % 3)
-		{
-		case 0:
-		{
-			pData = new (pData)QMAccountRegist((char*)"test_server", (char*)"account");
-			pThis->EnqueueMsg((QMAccountRegist*)pData);
-			break;
-		}
-
-		case 1:
-		{
-			pData = new (pData)QMPlayerInfo((char*)"test_server", (char*)"player");
-			pThis->EnqueueMsg((QMPlayerInfo*)pData);
-			break;
-		}
-
-		case 2:
-		{
-			pData = new (pData)QMStageClear((char*)"test_server", (char*)"stage");
-			pThis->EnqueueMsg((QMStageClear*)pData);
-			break;
-		}
-		}
+	//	void* pData = malloc(sizeof(QMAccountRegist));		
+	//	ZeroMemory(pData, sizeof(QMAccountRegist));
 
 
 
-		//--------------------------------------------------------
-		// 3. Sleep
-		//--------------------------------------------------------
+	//	//--------------------------------------------------------
+	//	// 2. placement new
+	//	//--------------------------------------------------------
 
-		WaitForSingleObject(hNeverSignalEvent, 10000000);
+	//	switch (rand() % 3)
+	//	{
+	//	case 0:
+	//	{
+	//		pData = new (pData)QMAccountRegist((char*)"test_server", (char*)"account");
+	//		pThis->EnqueueMsg((QMAccountRegist*)pData);
+	//		break;
+	//	}
 
-	}
+	//	case 1:
+	//	{
+	//		pData = new (pData)QMPlayerInfo((char*)"test_server", (char*)"player");
+	//		pThis->EnqueueMsg((QMPlayerInfo*)pData);
+	//		break;
+	//	}
+
+	//	case 2:
+	//	{
+	//		pData = new (pData)QMStageClear((char*)"test_server", (char*)"stage");
+	//		pThis->EnqueueMsg((QMStageClear*)pData);
+	//		break;
+	//	}
+	//	}
+
+
+
+	//	//--------------------------------------------------------
+	//	// 3. Sleep
+	//	//--------------------------------------------------------
+
+	//	WaitForSingleObject(hNeverSignalEvent, 10000000);
+
+	//}
 
 
 	return 0;

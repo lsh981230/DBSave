@@ -7,6 +7,7 @@ public:
 	~DBCommunicate();
 
 	void	DisconnectDB();
+	void	Print();
 
 private:
 	static UINT WINAPI DBSaveThread(LPVOID);

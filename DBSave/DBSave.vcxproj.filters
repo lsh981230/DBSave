@@ -13,18 +13,63 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="헤더 파일\QueryMsg">
+      <UniqueIdentifier>{1d767409-51a8-484c-b8d4-bbcb09a4b52e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\QueryMessage">
+      <UniqueIdentifier>{04d3c70d-48bb-4024-b991-02a7048e8360}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Library">
+      <UniqueIdentifier>{53665582-d3f3-4b78-be28-856d1e3fc7ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
+    <ClCompile Include="DBCommunicate.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="QMPlayerInfo.cpp">
+      <Filter>소스 파일\QueryMessage</Filter>
+    </ClCompile>
+    <ClCompile Include="QMStageClear.cpp">
+      <Filter>소스 파일\QueryMessage</Filter>
+    </ClCompile>
+    <ClCompile Include="QMAccountRegist.cpp">
+      <Filter>소스 파일\QueryMessage</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="errmsg.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="DBSave.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
+    <ClInclude Include="mysql.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DBCommunicate.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="IQueryMsg.h">
+      <Filter>헤더 파일\QueryMsg</Filter>
+    </ClInclude>
+    <ClInclude Include="QMAccountRegist.h">
+      <Filter>헤더 파일\QueryMsg</Filter>
+    </ClInclude>
+    <ClInclude Include="QMPlayerInfo.h">
+      <Filter>헤더 파일\QueryMsg</Filter>
+    </ClInclude>
+    <ClInclude Include="QMStageClear.h">
+      <Filter>헤더 파일\QueryMsg</Filter>
+    </ClInclude>
+    <ClInclude Include="LockFreeFreeList.h">
+      <Filter>헤더 파일\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="LockFreeQueue.h">
+      <Filter>헤더 파일\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -10,14 +10,13 @@ DBCommunicate::DBCommunicate()
 	_msgQueue = new LockFreeQueue<IQueryMsg*>();
 	_hMsgEnQ = CreateEvent(nullptr, true, false, nullptr);
 
-	//CreateThread();
 
 	if (!DBConnect())
 		exit(-1);
 
-	_hDBThread = (HANDLE)_beginthreadex(nullptr, 0, DBSaveThread, this, 0, nullptr);
-	HANDLE hUpdateThread = (HANDLE)_beginthreadex(nullptr, 0, UpdateThread, this, 0, nullptr);
-	CloseHandle(hUpdateThread);
+	DBTruncate();
+
+	CreateThread();
 
 }
 
@@ -54,21 +53,19 @@ void DBCommunicate::Print()
 
 bool DBCommunicate::DBConnect()
 {
-	MYSQL conn;
-
-
 	// 초기화
-	mysql_init(&conn);
+	mysql_init(&_conn);
 
 
 	// DB 연결
-	_dbLink = mysql_real_connect(&conn, "127.0.0.1", "root", "root", "test_server", 3306, (char *)NULL, 0);
+	_dbLink = mysql_real_connect(&_conn, "127.0.0.1", "root", "root", "test_server", 3306, (char *)NULL, 0);
 	if (_dbLink == NULL)
 	{
-		fprintf(stderr, "ERROR : %s", mysql_error(&conn));
+		fprintf(stderr, "ERROR : %s", mysql_error(&_conn));
 		return false;
 	}
 
+	
 
 
 	return true;
@@ -78,34 +75,34 @@ bool DBCommunicate::DBConnect()
 
 UINT __stdcall DBCommunicate::DBSaveThread(LPVOID arg)
 {
-	//DBCommunicate* pThis = (DBCommunicate*)arg;
+	DBCommunicate* pThis = (DBCommunicate*)arg;
 
 
 
-	//for (;;)
-	//{
-	//	WaitForSingleObject(pThis->_hMsgEnQ, INFINITE);
+	for (;;)
+	{
+		WaitForSingleObject(pThis->_hMsgEnQ, INFINITE);
 
 
 
-	//	while (pThis->_msgQueue->GetQueueSize() > 0)
-	//	{
+		while (pThis->_msgQueue->GetQueueSize() > 0)
+		{
 
-	//		// Message 처리			
-	//		pThis->SwitchMsg();
-	//	}
-
-
-
-	//	// 종료 조건
-	//	if (pThis->_msgQueue->GetQueueSize() <= 0 && pThis->_bStopDB)
-	//		break;
-	//}
+			// Message 처리			
+			pThis->SwitchMsg();
+		}
 
 
 
-	//// DB와 연결종료
-	//mysql_close(pThis->_dbLink);
+		// 종료 조건
+		if (pThis->_bStopDB && pThis->_msgQueue->GetQueueSize() <= 0)
+			break;
+	}
+
+
+
+	// DB와 연결종료
+	mysql_close(pThis->_dbLink);
 
 	return 0;
 }
@@ -114,59 +111,62 @@ UINT __stdcall DBCommunicate::DBSaveThread(LPVOID arg)
 
 UINT __stdcall DBCommunicate::UpdateThread(LPVOID arg)
 {
-	//DBCommunicate* pThis = (DBCommunicate*)arg;
-	//HANDLE hNeverSignalEvent = CreateEvent(nullptr, true, false, nullptr);
+	DBCommunicate* pThis = (DBCommunicate*)arg;
+	HANDLE hNeverSignalEvent = CreateEvent(nullptr, true, false, nullptr);
+
+	DWORD accountCnt = 0;
+	DWORD playerCnt = 0;
+	DWORD stageCnt = 0;
+
+	while (!pThis->_bStopDB)
+	{
+		//--------------------------------------------------------
+		// 1. Alloc Data Block 
+		//--------------------------------------------------------
+
+		void* pData = malloc(sizeof(QMAccountRegist));		
+		ZeroMemory(pData, sizeof(QMAccountRegist));
 
 
 
-	//while (!pThis->_bStopDB)
-	//{
-	//	//--------------------------------------------------------
-	//	// 1. Alloc Data Block 
-	//	//--------------------------------------------------------
-
-	//	void* pData = malloc(sizeof(QMAccountRegist));		
-	//	ZeroMemory(pData, sizeof(QMAccountRegist));
+		//--------------------------------------------------------
+		// 2. placement new
+		//--------------------------------------------------------
 
 
+		switch (rand() % 3)
+		{
+		case 0:
+		{
+			pData = new (pData)QMAccountRegist((char*)"test_server", (char*)"account", accountCnt++);
+			pThis->EnqueueMsg((QMAccountRegist*)pData);
+			break;
+		}
 
-	//	//--------------------------------------------------------
-	//	// 2. placement new
-	//	//--------------------------------------------------------
+		case 1:
+		{
+			pData = new (pData)QMPlayerInfo((char*)"test_server", (char*)"player", playerCnt++);
+			pThis->EnqueueMsg((QMPlayerInfo*)pData);
+			break;
+		}
 
-	//	switch (rand() % 3)
-	//	{
-	//	case 0:
-	//	{
-	//		pData = new (pData)QMAccountRegist((char*)"test_server", (char*)"account");
-	//		pThis->EnqueueMsg((QMAccountRegist*)pData);
-	//		break;
-	//	}
-
-	//	case 1:
-	//	{
-	//		pData = new (pData)QMPlayerInfo((char*)"test_server", (char*)"player");
-	//		pThis->EnqueueMsg((QMPlayerInfo*)pData);
-	//		break;
-	//	}
-
-	//	case 2:
-	//	{
-	//		pData = new (pData)QMStageClear((char*)"test_server", (char*)"stage");
-	//		pThis->EnqueueMsg((QMStageClear*)pData);
-	//		break;
-	//	}
-	//	}
+		case 2:
+		{
+			pData = new (pData)QMStageClear((char*)"test_server", (char*)"stage", stageCnt++);
+			pThis->EnqueueMsg((QMStageClear*)pData);
+			break;
+		}
+		}
 
 
 
-	//	//--------------------------------------------------------
-	//	// 3. Sleep
-	//	//--------------------------------------------------------
+		//--------------------------------------------------------
+		// 3. Sleep
+		//--------------------------------------------------------
 
-	//	WaitForSingleObject(hNeverSignalEvent, 10000000);
+		WaitForSingleObject(hNeverSignalEvent, 100);
 
-	//}
+	}
 
 
 	return 0;
@@ -223,6 +223,14 @@ void DBCommunicate::SwitchMsg()
 
 	SendQuery(pQuery);
 
+
+
+	//--------------------------------------------------------
+	// 4. 해제
+	//--------------------------------------------------------
+
+	delete pMsg;
+
 }
 
 
@@ -230,7 +238,6 @@ void DBCommunicate::SwitchMsg()
 
 void DBCommunicate::SendQuery(char* pQuery)
 {
-	//int queryRes = mysql_query(_dbLink, "SELECT * FROM test_server.account");
 	int queryRes = mysql_query(_dbLink, pQuery);
 
 	if (queryRes != 0)
@@ -246,6 +253,8 @@ void DBCommunicate::SendQuery(char* pQuery)
 		}
 
 	}
+	else
+		_queryTPS++;
 }
 
 
@@ -276,5 +285,13 @@ bool DBCommunicate::ConnectError(int errorNo)
 	}
 
 	return false;
+}
+
+
+void DBCommunicate::DBTruncate()
+{
+	SendQuery((char*)"truncate test_server.account;");
+	SendQuery((char*)"truncate test_server.player;");
+	SendQuery((char*)"truncate test_server.stage;");
 }
 

@@ -9,6 +9,7 @@ public:
 	void	DisconnectDB();
 	void	Print();
 
+
 private:
 	static UINT WINAPI DBSaveThread(LPVOID);
 	static UINT WINAPI UpdateThread(LPVOID);
@@ -21,19 +22,21 @@ private:
 	void	SwitchMsg();
 	void	SendQuery(char* pQuery);
 
-	bool ConnectError(int errorNo);
+	bool	ConnectError(int errorNo);
+
+	void	DBTruncate();
 
 
 public:
 
-	LockFreeQueue<IQueryMsg*>*	_msgQueue;
-
 	int		_queryTPS;
+	MYSQL	_conn;
 	MYSQL*	_dbLink;
 
 	HANDLE	_hDBThread;
 	HANDLE	_hMsgEnQ;
 
 	bool	_bStopDB;
+	LockFreeQueue<IQueryMsg*>*	_msgQueue;
 };
 

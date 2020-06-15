@@ -153,9 +153,15 @@
   <ItemGroup>
     <ClCompile Include="DBCommunicate.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="QMAccountRegist.cpp" />
-    <ClCompile Include="QMPlayerInfo.cpp" />
-    <ClCompile Include="QMStageClear.cpp" />
+    <ClCompile Include="QMAccountRegist.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="QMPlayerInfo.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="QMStageClear.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DBCommunicate.h" />

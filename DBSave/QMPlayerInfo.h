@@ -3,7 +3,7 @@ class QMPlayerInfo :	public IQueryMsg
 {
 public:
 	QMPlayerInfo();
-	QMPlayerInfo(char* schemaName, char* tableName);
+	QMPlayerInfo(char* schemaName, char* tableName, int value);
 	virtual ~QMPlayerInfo();
 
 

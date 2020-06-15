@@ -4,11 +4,11 @@ QMAccountRegist::QMAccountRegist()
 {
 }
 
-QMAccountRegist::QMAccountRegist(char * schemaName, char * tableName)
+QMAccountRegist::QMAccountRegist(char * schemaName, char * tableName, int value)
 {
-	_value = 0;
-	_schemaName = schemaName;
-	_tableName = tableName;
+	_value = value;
+	strcpy_s(_schemaName, schemaName);
+	strcpy_s(_tableName, tableName);
 }
 
 
@@ -20,7 +20,7 @@ char * QMAccountRegist::CreateQuery()
 {
 	ZeroMemory(_query, sizeof(_query));
 
-	sprintf_s(_query, "INSERT into %s.%s (value) VALUES (%d)", _schemaName, _tableName, ++_value);
+	sprintf_s(_query, "INSERT into %s.%s (value) VALUES (%d)", _schemaName, _tableName, _value);
 
 
 	return _query;

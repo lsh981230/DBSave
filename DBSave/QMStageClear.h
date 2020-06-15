@@ -4,7 +4,7 @@ class QMStageClear :
 {
 public:
 	QMStageClear();
-	QMStageClear(char* schemaName, char* tableName);
+	QMStageClear(char* schemaName, char* tableName, int value);
 
 	~QMStageClear();
 

@@ -4,7 +4,7 @@ class QMAccountRegist :
 {
 public:
 	QMAccountRegist();
-	QMAccountRegist(char* schemaName, char* tableName);
+	QMAccountRegist(char* schemaName, char* tableName, int value);
 	virtual ~QMAccountRegist();
 
 	char* CreateQuery() override;

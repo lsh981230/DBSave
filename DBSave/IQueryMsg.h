@@ -10,9 +10,9 @@ public:
 
 protected:
 
-	char	_query[128];
+	char	_query[256];
 
-	char*	_schemaName;
-	char*	_tableName;
+	char	_schemaName[32];
+	char	_tableName[32];
 };
 

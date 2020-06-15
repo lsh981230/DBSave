@@ -30,7 +30,7 @@ private:
 
 
 public:
-	LockFreeFreeList(bool bCallConstructor = true)
+	LockFreeFreeList(bool bPlacementNew = true)
 	{
 		m_useCount = 0;
 		m_stackCount = 0;
@@ -40,7 +40,7 @@ public:
 		m_top->nodeID = 0;
 
 
-		m_bCallConstructor = bCallConstructor;
+		m_bPlacementNew = bPlacementNew;
 	}
 
 	~LockFreeFreeList()
@@ -115,7 +115,12 @@ public:
 
 	DATA*	 CreateNode()
 	{
-		Node* pNewNode = new Node;
+		Node* pNewNode;
+		if (m_bPlacementNew)
+			pNewNode = (Node*)malloc(sizeof(Node));
+		else
+			pNewNode = new Node();
+
 		pNewNode->pNext = nullptr;
 
 
@@ -160,5 +165,5 @@ private:
 	LONG			m_allocNodeCnt;
 	LONG			m_useCount;
 
-	bool   m_bCallConstructor;
+	bool   m_bPlacementNew;
 };

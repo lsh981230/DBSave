@@ -14,9 +14,11 @@
 #include "mysql.h"
 #include "errmsg.h"
 
+#include "CCrashDump.h"
 
 #include "LockFreeFreeList.h"
 #include "LockFreeQueue.h"
+#include "MemoryPool_TLS.h"
 
 #include "IQueryMsg.h"
 

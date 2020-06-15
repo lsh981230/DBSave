@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CCrashDump.cpp" />
     <ClCompile Include="DBCommunicate.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="QMAccountRegist.cpp">
@@ -164,11 +165,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CCrashDump.h" />
     <ClInclude Include="DBCommunicate.h" />
     <ClInclude Include="errmsg.h" />
     <ClInclude Include="IQueryMsg.h" />
     <ClInclude Include="LockFreeFreeList.h" />
     <ClInclude Include="LockFreeQueue.h" />
+    <ClInclude Include="MemoryPool_TLS.h" />
     <ClInclude Include="mysql.h" />
     <ClInclude Include="QMAccountRegist.h" />
     <ClInclude Include="QMPlayerInfo.h" />

@@ -37,6 +37,8 @@ public:
 	HANDLE	_hMsgEnQ;
 
 	bool	_bStopDB;
+
+	MemoryPool_TLS<QMAccountRegist>* _memoryPool;
 	LockFreeQueue<IQueryMsg*>*	_msgQueue;
 };
 

@@ -8,8 +8,8 @@ DBCommunicate::DBCommunicate()
 {
 	_bStopDB = false;
 	_msgQueue = new LockFreeQueue<IQueryMsg*>();
+	_memoryPool = new MemoryPool_TLS<QMAccountRegist>(true, TlsAlloc());
 	_hMsgEnQ = CreateEvent(nullptr, true, false, nullptr);
-
 
 	if (!DBConnect())
 		exit(-1);
@@ -42,7 +42,11 @@ void DBCommunicate::DisconnectDB()
 void DBCommunicate::Print()
 {
 	printf("=============================================\n");
-	printf("Query TPS : %d\n\n", _queryTPS);
+	printf("Query TPS : %d\n", _queryTPS);
+	printf("Queue Size : %d\n\n", _msgQueue->GetQueueSize());
+
+	printf("MemoryPool Use Count : %d\n", _memoryPool->GetUseCount());
+	printf("MemoryPool Alloc Count : %d\n", _memoryPool->GetAllocCnt());
 	printf("=============================================\n");
 
 	_queryTPS = 0;
@@ -120,11 +124,12 @@ UINT __stdcall DBCommunicate::UpdateThread(LPVOID arg)
 
 	while (!pThis->_bStopDB)
 	{
+
 		//--------------------------------------------------------
 		// 1. Alloc Data Block 
 		//--------------------------------------------------------
 
-		void* pData = malloc(sizeof(QMAccountRegist));		
+		void* pData = pThis->_memoryPool->Alloc();
 		ZeroMemory(pData, sizeof(QMAccountRegist));
 
 
@@ -159,12 +164,11 @@ UINT __stdcall DBCommunicate::UpdateThread(LPVOID arg)
 		}
 
 
-
 		//--------------------------------------------------------
 		// 3. Sleep
 		//--------------------------------------------------------
 
-		WaitForSingleObject(hNeverSignalEvent, 100);
+		WaitForSingleObject(hNeverSignalEvent, 2);
 
 	}
 
@@ -226,10 +230,10 @@ void DBCommunicate::SwitchMsg()
 
 
 	//--------------------------------------------------------
-	// 4. ÇØÁ¦
+	// 4. Message Free
 	//--------------------------------------------------------
-
-	delete pMsg;
+	
+	_memoryPool->Free((QMAccountRegist*)pMsg);
 
 }
 
@@ -242,6 +246,8 @@ void DBCommunicate::SendQuery(char* pQuery)
 
 	if (queryRes != 0)
 	{
+		printf("Query Failed, Query was : %s\n", pQuery);
+
 		if (ConnectError(mysql_errno(_dbLink)))
 		{
 			mysql_query(_dbLink, pQuery);
@@ -261,7 +267,7 @@ void DBCommunicate::SendQuery(char* pQuery)
 
 bool DBCommunicate::ConnectError(int errorNo)
 {
-	fprintf(stderr, "ERROR : %s", mysql_error(_dbLink));
+	fprintf(stderr, "Query Error : %s\n", mysql_error(_dbLink));
 
 	// Try Reconnect
 	if (errorNo == CR_SOCKET_CREATE_ERROR
@@ -275,8 +281,9 @@ bool DBCommunicate::ConnectError(int errorNo)
 
 		for (int i = 0; i < 20; i++)
 		{
-			if (mysql_ping(_dbLink) == 0)
+			if (DBConnect())
 			{
+				printf("Reconnect Success\n");
 				return true;
 			}
 		}
@@ -284,6 +291,7 @@ bool DBCommunicate::ConnectError(int errorNo)
 
 	}
 
+	printf("Reconnect Failed\n");
 	return false;
 }
 

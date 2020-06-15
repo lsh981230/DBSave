@@ -24,6 +24,5 @@ char * QMStageClear::CreateQuery()
 
 	sprintf_s(_query, "INSERT into %s.%s (value) VALUES (%d)", _schemaName, _tableName, _value);
 
-
 	return _query;
 }
